@@ -2,6 +2,7 @@ package ar.edu.utn.frc.AgenciaVehiculos.servicies;
 
 import ar.edu.utn.frc.AgenciaVehiculos.entities.Modelo;
 import ar.edu.utn.frc.AgenciaVehiculos.repositories.ModeloRepository;
+import ar.edu.utn.frc.AgenciaVehiculos.servicies.interfaces.Service;
 
 import java.util.List;
 

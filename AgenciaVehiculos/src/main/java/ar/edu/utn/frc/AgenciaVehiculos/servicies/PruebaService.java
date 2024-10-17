@@ -2,6 +2,7 @@ package ar.edu.utn.frc.AgenciaVehiculos.servicies;
 
 import ar.edu.utn.frc.AgenciaVehiculos.entities.Prueba;
 import ar.edu.utn.frc.AgenciaVehiculos.repositories.PruebaRepository;
+import ar.edu.utn.frc.AgenciaVehiculos.servicies.interfaces.Service;
 
 import java.util.List;
 

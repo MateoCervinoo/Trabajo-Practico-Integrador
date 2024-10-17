@@ -2,13 +2,16 @@ package ar.edu.utn.frc.AgenciaVehiculos.servicies;
 
 import ar.edu.utn.frc.AgenciaVehiculos.entities.Empleado;
 import ar.edu.utn.frc.AgenciaVehiculos.repositories.EmpleadoRepository;
+import ar.edu.utn.frc.AgenciaVehiculos.servicies.interfaces.EmpleadoService;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-public class EmpleadoService implements Service<Empleado, Integer> {
+@Service
+public class EmpleadoServiceImpl extends ServiceImpl<Empleado, Integer> implements EmpleadoService {
     private final EmpleadoRepository empleadoRepository;
 
-    public EmpleadoService(EmpleadoRepository empleadoRepository) {
+    public EmpleadoServiceImpl(EmpleadoRepository empleadoRepository) {
         this.empleadoRepository = empleadoRepository;
     }
 

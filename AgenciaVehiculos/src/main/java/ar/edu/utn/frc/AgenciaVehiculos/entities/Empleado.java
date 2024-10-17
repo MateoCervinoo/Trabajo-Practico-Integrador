@@ -12,12 +12,8 @@ import java.util.List;
 @NoArgsConstructor
 public class Empleado {
     @Id
-    @GeneratedValue(generator = "empleados")
-    @TableGenerator(name = "empleados", table = "sqlite_sequence",
-            pkColumnName = "name", valueColumnName = "seq",
-            pkColumnValue = "LEGAJO",
-            initialValue = 1, allocationSize = 1)
-    private int id;
+    @Column(name = "LEGAJO")
+    private int legajo;
 
     @Column(name = "NOMBRE")
     private String nombreEmpleado;

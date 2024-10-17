@@ -1,4 +1,4 @@
-package ar.edu.utn.frc.AgenciaVehiculos.servicies;
+package ar.edu.utn.frc.AgenciaVehiculos.servicies.interfaces;
 
 import java.util.List;
 
