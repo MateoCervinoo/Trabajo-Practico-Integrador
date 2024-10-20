@@ -2,14 +2,16 @@ package ar.edu.utn.frc.AgenciaVehiculos.servicies;
 
 import ar.edu.utn.frc.AgenciaVehiculos.entities.Marca;
 import ar.edu.utn.frc.AgenciaVehiculos.repositories.MarcaRepository;
-import ar.edu.utn.frc.AgenciaVehiculos.servicies.interfaces.Service;
+import ar.edu.utn.frc.AgenciaVehiculos.servicies.interfaces.MarcaService;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-public class MarcaService implements Service<Marca, Integer> {
+@Service
+public class MarcaServiceImpl extends ServiceImpl<Marca, Integer> implements MarcaService {
     private final MarcaRepository marcaRepository;
 
-    public MarcaService(MarcaRepository marcaRepository) {
+    public MarcaServiceImpl(MarcaRepository marcaRepository) {
         this.marcaRepository = marcaRepository;
     }
 

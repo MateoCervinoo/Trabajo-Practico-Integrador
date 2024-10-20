@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -35,7 +36,7 @@ public class Interesado {
     private int numeroLicencia;
 
     @Column(name = "FECHA_VENCIMIENTO_LICENCIA")
-    private String fechaVencimientoLicencia;
+    private LocalDateTime fechaVencimientoLicencia;
 
     @OneToMany(mappedBy = "interesado", fetch = FetchType.LAZY)
     private List<Prueba> pruebasInteresado;

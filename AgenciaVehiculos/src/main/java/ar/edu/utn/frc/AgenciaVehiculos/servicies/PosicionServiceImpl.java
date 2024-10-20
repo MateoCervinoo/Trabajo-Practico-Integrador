@@ -2,14 +2,16 @@ package ar.edu.utn.frc.AgenciaVehiculos.servicies;
 
 import ar.edu.utn.frc.AgenciaVehiculos.entities.Posicion;
 import ar.edu.utn.frc.AgenciaVehiculos.repositories.PosicionRepository;
-import ar.edu.utn.frc.AgenciaVehiculos.servicies.interfaces.Service;
+import ar.edu.utn.frc.AgenciaVehiculos.servicies.interfaces.PosicionService;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-public class PosicionService implements Service<Posicion, Integer> {
+@Service
+public class PosicionServiceImpl extends ServiceImpl<Posicion, Integer> implements PosicionService {
     private final PosicionRepository posicionRepository;
 
-    public PosicionService(PosicionRepository posicionRepository) {
+    public PosicionServiceImpl(PosicionRepository posicionRepository) {
         this.posicionRepository = posicionRepository;
     }
 
