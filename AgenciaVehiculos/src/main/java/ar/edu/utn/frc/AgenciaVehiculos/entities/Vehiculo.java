@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.AgenciaVehiculos.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,6 +27,10 @@ public class Vehiculo {
     @JoinColumn(name = "ID_MODELO", referencedColumnName = "id")
     private Modelo modelo;
 
+    @Column(name = "ANIO")
+    private int anio;
+
     @OneToMany(mappedBy = "vehiculo", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Prueba> pruebasVehiculo;
 }

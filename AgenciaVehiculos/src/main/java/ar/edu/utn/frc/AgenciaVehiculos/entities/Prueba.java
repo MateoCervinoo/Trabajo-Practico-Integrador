@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.AgenciaVehiculos.entities;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -28,21 +29,20 @@ public class Prueba {
     @JoinColumn(name = "ID_EMPLEADO", referencedColumnName = "LEGAJO")
     private Empleado empleado;
 
-    @Column(name = "FECHA_HORA_INICIO")
+    @Column(name = "FECHA_HORA_INICIO", columnDefinition = "TIMESTAMP")
     private LocalDateTime fechaInicio;
 
-    @Column(name = "FECHA_HORA_FIN")
+    @Column(name = "FECHA_HORA_FIN", columnDefinition = "TIMESTAMP")
     private LocalDateTime fechaFin;
 
     @Column(name = "COMENTARIOS")
     private String comentarios;
 
-    public Prueba(Vehiculo vehiculo, Interesado interesado, Empleado empleado, LocalDateTime fechaInicio, LocalDateTime fechaFin, String comentarios) {
+    public Prueba(Vehiculo vehiculo, Interesado interesado, Empleado empleado, LocalDateTime fechaInicio, LocalDateTime fechaFin) {
         this.vehiculo = vehiculo;
         this.interesado = interesado;
         this.empleado = empleado;
         this.fechaInicio = fechaInicio;
         this.fechaFin = fechaFin;
-        this.comentarios = comentarios;
     }
 }

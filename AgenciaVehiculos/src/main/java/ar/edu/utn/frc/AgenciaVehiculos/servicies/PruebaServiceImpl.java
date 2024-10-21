@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements PruebaService {
@@ -52,6 +53,13 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
         return this.pruebaRepository.findAll();
     }
 
+    public List<Prueba> listadoPruebasEnCurso() {
+        return this.pruebaRepository.findAll()
+                .stream()
+                .filter(prueba -> prueba.getFechaFin().isAfter(LocalDateTime.now()))
+                .collect(Collectors.toList());
+    }
+
     public void crearPrueba(Prueba p){
         Interesado interesado = interesadoRepository.findById(p.getInteresado().getId())
                 .orElseThrow(() -> new PruebaException("Cliente no encontrado!"));
@@ -76,11 +84,21 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
         Empleado empleado = empleadoRepository.findById(p.getEmpleado().getLegajo())
                 .orElseThrow(() -> new PruebaException("Empleado no encontrado!"));
 
-        Prueba prueba = new Prueba(vehiculo, interesado, empleado, p.getFechaInicio(), p.getFechaFin(), p.getComentarios());
+        Prueba prueba = new Prueba(vehiculo, interesado, empleado, p.getFechaInicio(), p.getFechaFin());
         interesado.getPruebasInteresado().add(prueba);
         vehiculo.getPruebasVehiculo().add(prueba);
         empleado.getPruebasEmpleado().add(prueba);
 
         add(prueba);
+    }
+
+    public void agregarComentarios(int id, String comentarios){
+        Prueba prueba = this.pruebaRepository.findById(id)
+                .orElseThrow(() -> new PruebaException("Prueba no encontrada!"));
+
+        prueba.setFechaFin(LocalDateTime.now());
+        prueba.setComentarios(comentarios);
+
+        update(prueba);
     }
 }

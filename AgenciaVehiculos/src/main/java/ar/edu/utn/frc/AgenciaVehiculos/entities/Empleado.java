@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.AgenciaVehiculos.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,5 +26,6 @@ public class Empleado {
     private int telefonoContacto;
 
     @OneToMany(mappedBy = "empleado", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Prueba> pruebasEmpleado;
 }

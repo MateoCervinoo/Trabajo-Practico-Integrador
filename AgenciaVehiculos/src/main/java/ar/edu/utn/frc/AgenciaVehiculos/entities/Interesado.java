@@ -1,5 +1,6 @@
 package ar.edu.utn.frc.AgenciaVehiculos.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,9 +36,10 @@ public class Interesado {
     @Column(name = "NRO_LICENCIA")
     private int numeroLicencia;
 
-    @Column(name = "FECHA_VENCIMIENTO_LICENCIA")
+    @Column(name = "FECHA_VENCIMIENTO_LICENCIA", columnDefinition = "TIMESTAMP")
     private LocalDateTime fechaVencimientoLicencia;
 
     @OneToMany(mappedBy = "interesado", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Prueba> pruebasInteresado;
 }

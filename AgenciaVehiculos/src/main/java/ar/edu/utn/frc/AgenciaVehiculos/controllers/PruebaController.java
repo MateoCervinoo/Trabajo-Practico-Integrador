@@ -1,53 +1,52 @@
 package ar.edu.utn.frc.AgenciaVehiculos.controllers;
 
-import ar.edu.utn.frc.AgenciaVehiculos.entities.Empleado;
-import ar.edu.utn.frc.AgenciaVehiculos.entities.Interesado;
+import ar.edu.utn.frc.AgenciaVehiculos.dto.*;
 import ar.edu.utn.frc.AgenciaVehiculos.entities.Prueba;
 import ar.edu.utn.frc.AgenciaVehiculos.servicies.EmpleadoServiceImpl;
-import ar.edu.utn.frc.AgenciaVehiculos.servicies.InteresadoServiceImpl;
 import ar.edu.utn.frc.AgenciaVehiculos.servicies.PruebaServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/agencia")
+@RequestMapping("/agencia/prueba")
 public class PruebaController {
     private final EmpleadoServiceImpl empleadoService;
-    private final InteresadoServiceImpl interesadoService;
     private final PruebaServiceImpl pruebaService;
 
-    public PruebaController(EmpleadoServiceImpl empleadoService, InteresadoServiceImpl interesadoService, PruebaServiceImpl pruebaService) {
+    public PruebaController(EmpleadoServiceImpl empleadoService, PruebaServiceImpl pruebaService) {
         this.empleadoService = empleadoService;
-        this.interesadoService = interesadoService;
         this.pruebaService = pruebaService;
     }
 
-    @GetMapping("/empleados")
-    public ResponseEntity<List<Empleado>> getAll() {
-        List<Empleado> result = this.empleadoService.findAll();
-        return ResponseEntity.ok(result);
+    @GetMapping("/listado")
+    public ResponseEntity<List<PruebaDTO>> listadoPruebasEnCurso() {
+        List<Prueba> pruebas = this.pruebaService.listadoPruebasEnCurso();
+        List<PruebaDTO> pruebaDTOs = pruebas.stream()
+                .map(p -> new PruebaDTO(p.getId(), p.getFechaFin(), new InteresadoDTO(p.getInteresado().getId(), p.getInteresado().getNombreInteresado(), p.getInteresado().getApellidoInteresado()), new VehiculoDTO(p.getVehiculo().getPatente(), new ModeloDTO(p.getVehiculo().getModelo().getId(), new MarcaDTO(p.getVehiculo().getModelo().getMarca().getId(), p.getVehiculo().getModelo().getMarca().getNombre()), p.getVehiculo().getModelo().getDescripcion()), p.getVehiculo().getAnio())))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(pruebaDTOs);
     }
 
-    @PostMapping("/crear-cliente")
-    public ResponseEntity<Object> addClient(@RequestBody Interesado interesado){
+    @PostMapping("/crear")
+    public ResponseEntity<Object> agregarPrueba(@RequestBody Prueba prueba){
         try{
-            this.interesadoService.add(interesado);
-            return new ResponseEntity<>(interesado, HttpStatus.CREATED);
+            this.pruebaService.crearPrueba(prueba);
+            return new ResponseEntity<>("Prueba creada correctamente!", HttpStatus.CREATED);
         } catch (Exception e){
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
-    @PostMapping("/crear-prueba")
-    public ResponseEntity<Object> addPrueba(@RequestBody Prueba prueba){
-        try{
-            this.pruebaService.crearPrueba(prueba);
-            return new ResponseEntity<>(HttpStatus.CREATED);
-        } catch (Exception e){
+    @PutMapping("/finalizar/{id}")
+    public ResponseEntity<Object> finalizarPrueba(@PathVariable int id, @RequestBody String comentarios) {
+        try {
+            pruebaService.agregarComentarios(id, comentarios);
+            return new ResponseEntity<>("Prueba finalizada correctamente!", HttpStatus.OK);
+        } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
