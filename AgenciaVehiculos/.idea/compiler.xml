@@ -7,15 +7,19 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="apiGetawayAgencia" />
         <module name="notificacionesAgencia" />
         <module name="pruebaAgencia" />
-        <module name="apunte-api-gw-kempes" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="apunte-spring-security" target="17" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="apunte-api-gw-kempes" options="-parameters" />
+      <module name="apiGetawayAgencia" options="-parameters" />
+      <module name="apunte-spring-security" options="-parameters" />
       <module name="notificacionesAgencia" options="-parameters" />
       <module name="pruebaAgencia" options="-parameters" />
     </option>

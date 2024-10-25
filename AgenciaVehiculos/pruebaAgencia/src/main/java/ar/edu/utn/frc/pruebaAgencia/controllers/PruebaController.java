@@ -14,11 +14,9 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/agencia/prueba")
 public class PruebaController {
-    private final EmpleadoServiceImpl empleadoService;
     private final PruebaServiceImpl pruebaService;
 
-    public PruebaController(EmpleadoServiceImpl empleadoService, PruebaServiceImpl pruebaService) {
-        this.empleadoService = empleadoService;
+    public PruebaController(PruebaServiceImpl pruebaService) {
         this.pruebaService = pruebaService;
     }
 

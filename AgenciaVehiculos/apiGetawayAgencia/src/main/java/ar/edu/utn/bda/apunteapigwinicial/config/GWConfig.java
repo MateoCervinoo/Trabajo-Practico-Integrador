@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class GWConfig {
-
     @Bean
     public RouteLocator configurarRutas(RouteLocatorBuilder builder,
                                         @Value("${url-microservicio-prueba}") String uriPrueba,
@@ -20,7 +19,5 @@ public class GWConfig {
                 .route(p -> p.path("/api/notificaciones/**").uri(uriNotificacion))
                 .route(p -> p.path("/api/servicio/**").uri(uriServicio))
                 .build();
-
     }
-
 }

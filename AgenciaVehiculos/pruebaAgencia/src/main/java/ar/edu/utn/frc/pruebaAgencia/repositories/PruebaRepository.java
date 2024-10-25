@@ -8,5 +8,4 @@ import java.time.LocalDateTime;
 
 @Repository
 public interface PruebaRepository extends JpaRepository<Prueba, Integer> {
-    boolean findPruebaActivaPorVehiculo(int id);
 }
