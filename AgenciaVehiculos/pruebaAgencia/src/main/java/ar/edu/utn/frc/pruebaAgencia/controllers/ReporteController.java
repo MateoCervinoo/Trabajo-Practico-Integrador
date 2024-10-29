@@ -1,7 +1,9 @@
 package ar.edu.utn.frc.pruebaAgencia.controllers;
 
 import ar.edu.utn.frc.pruebaAgencia.dto.*;
+import ar.edu.utn.frc.pruebaAgencia.models.Prueba;
 import ar.edu.utn.frc.pruebaAgencia.models.Vehiculo;
+import ar.edu.utn.frc.pruebaAgencia.servicies.IncidenteServiceImpl;
 import ar.edu.utn.frc.pruebaAgencia.servicies.VehiculoServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,9 +19,11 @@ import java.util.stream.Collectors;
 @RequestMapping("api/agencia/reportes")
 public class ReporteController {
     private final VehiculoServiceImpl vehiculoService;
+    private final IncidenteServiceImpl incidenteService;
 
-    public ReporteController(VehiculoServiceImpl vehiculoService) {
+    public ReporteController(VehiculoServiceImpl vehiculoService, IncidenteServiceImpl incidenteService) {
         this.vehiculoService = vehiculoService;
+        this.incidenteService = incidenteService;
     }
 
     @GetMapping("/pruebas-vehiculo/{id}")
@@ -33,5 +37,23 @@ public class ReporteController {
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @GetMapping("/listado-incidentes")
+    public ResponseEntity<List<PruebaDTO>> listadoIncidentes() {
+        List<Prueba> pruebas = this.incidenteService.listadoPruebas();
+        List<PruebaDTO> pruebaDTOs = pruebas.stream()
+                .map(p -> new PruebaDTO(p.getId(), p.getFechaFin(), new InteresadoDTO(p.getInteresado().getId(), p.getInteresado().getNombreInteresado(), p.getInteresado().getApellidoInteresado()), new VehiculoDTO(p.getVehiculo().getPatente(), new ModeloDTO(p.getVehiculo().getModelo().getId(), new MarcaDTO(p.getVehiculo().getModelo().getMarca().getId(), p.getVehiculo().getModelo().getMarca().getNombre()), p.getVehiculo().getModelo().getDescripcion()), p.getVehiculo().getAnio())))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(pruebaDTOs);
+    }
+
+    @GetMapping("/listado-incidentes/{idEmpleado}")
+    public ResponseEntity<List<PruebaDTO>> listadoIncidentes(@PathVariable int idEmpleado) {
+        List<Prueba> pruebas = this.incidenteService.listadoPruebasEmpleado(idEmpleado);
+        List<PruebaDTO> pruebaDTOs = pruebas.stream()
+                .map(p -> new PruebaDTO(p.getId(), p.getFechaFin(), new InteresadoDTO(p.getInteresado().getId(), p.getInteresado().getNombreInteresado(), p.getInteresado().getApellidoInteresado()), new VehiculoDTO(p.getVehiculo().getPatente(), new ModeloDTO(p.getVehiculo().getModelo().getId(), new MarcaDTO(p.getVehiculo().getModelo().getMarca().getId(), p.getVehiculo().getModelo().getMarca().getNombre()), p.getVehiculo().getModelo().getDescripcion()), p.getVehiculo().getAnio())))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(pruebaDTOs);
     }
 }

@@ -21,16 +21,18 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
     private final InteresadoRepository interesadoRepository;
     private final EmpleadoRepository empleadoRepository;
     private final PosicionRepository posicionRepository;
+    private final IncidenteServiceImpl incidenteService;
     private final RestTemplate restTemplate;
 
     public PruebaServiceImpl(PruebaRepository pruebaRepository, VehiculoRepository vehiculoRepository,
                              InteresadoRepository interesadoRepository, EmpleadoRepository empleadoRepository,
-                             PosicionRepository posicionRepository, RestTemplate restTemplate) {
+                             PosicionRepository posicionRepository, IncidenteServiceImpl incidenteService, RestTemplate restTemplate) {
         this.pruebaRepository = pruebaRepository;
         this.vehiculoRepository = vehiculoRepository;
         this.interesadoRepository = interesadoRepository;
         this.empleadoRepository = empleadoRepository;
         this.posicionRepository = posicionRepository;
+        this.incidenteService = incidenteService;
         this.restTemplate = restTemplate;
     }
 
@@ -108,13 +110,21 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
     public NotificacionAlertaDTO verificarEnviarNotificacion(int idVehiculo){
         Vehiculo vehiculo = vehiculoRepository.findById(idVehiculo).orElseThrow();
         List<Posicion> posiciones = vehiculo.getPosicionesVehiculo();
+        List<Prueba> pruebas = vehiculo.getPruebasVehiculo();
 
         Posicion posicionVehiculo = posiciones.stream()
                 .max(Comparator.comparing(Posicion::getFechaHora))
                 .orElseThrow(() -> new NoSuchElementException("No tiene posiciones guardadas"));
 
+        Prueba prueba = pruebas.stream()
+                .filter(p -> p.getFechaFin().isAfter(LocalDateTime.now()))
+                .findFirst()
+                .orElseThrow(() -> new PruebaException("El vehiculo no tiene una prueba activa"));
+
         boolean estaEnLimite = evaluarPosicion(posicionVehiculo);
         if (!estaEnLimite){
+            Incidente incidente = new Incidente(prueba, prueba.getEmpleado());
+            incidenteService.add(incidente);
             return enviarNotificacion(posicionVehiculo);
         }
         return null;
