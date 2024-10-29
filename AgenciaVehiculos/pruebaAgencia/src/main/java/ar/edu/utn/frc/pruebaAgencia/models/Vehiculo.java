@@ -33,4 +33,8 @@ public class Vehiculo {
     @OneToMany(mappedBy = "vehiculo", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Prueba> pruebasVehiculo;
+
+    @OneToMany(mappedBy = "vehiculo", fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Posicion> posicionesVehiculo;
 }

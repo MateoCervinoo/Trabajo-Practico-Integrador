@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "Posiciones")
 @Data
@@ -18,16 +20,23 @@ public class Posicion {
             initialValue = 1, allocationSize = 1)
     private int id;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "ID_VEHICULO", referencedColumnName = "ID")
     private Vehiculo vehiculo;
 
     @Column(name = "FECHA_HORA")
-    private String fechaHora;
+    private LocalDateTime fechaHora;
 
     @Column(name = "LATITUD")
-    private int latitud;
+    private double latitud;
 
     @Column(name = "LONGITUD")
-    private int longitud;
+    private double longitud;
+
+    public Posicion(Vehiculo vehiculo, LocalDateTime fechaHora, double latitud, double longitud) {
+        this.vehiculo = vehiculo;
+        this.fechaHora = fechaHora;
+        this.latitud = latitud;
+        this.longitud = longitud;
+    }
 }

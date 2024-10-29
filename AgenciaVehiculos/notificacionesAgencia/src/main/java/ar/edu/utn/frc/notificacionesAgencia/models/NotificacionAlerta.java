@@ -1,15 +1,14 @@
 package ar.edu.utn.frc.notificacionesAgencia.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "Notificaciones")
+@Table(name = "notificaciones_alertas")
 @Data
 @NoArgsConstructor
-public class Notificacion {
+public class NotificacionAlerta {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -20,12 +19,12 @@ public class Notificacion {
     @Column(name = "mensaje")
     private String mensajeEnviado;
 
-    @Column(name = "prueba_id")
-    private int pruebaId;
+    @Column(name = "vehiculo_id")
+    private int vehiculoId;
 
-    public Notificacion(String motivoNotifacion, String mensajeEnviado, int pruebaId) {
-        this.motivoNotifacion = motivoNotifacion;
+    public NotificacionAlerta(String motivoNotificacion, String mensajeEnviado, int vehiculoId) {
+        this.motivoNotifacion = motivoNotificacion;
         this.mensajeEnviado = mensajeEnviado;
-        this.pruebaId = pruebaId;
+        this.vehiculoId = vehiculoId;
     }
 }

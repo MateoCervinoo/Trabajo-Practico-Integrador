@@ -1,8 +1,8 @@
 package ar.edu.utn.frc.pruebaAgencia.controllers;
 
 import ar.edu.utn.frc.pruebaAgencia.dto.*;
+import ar.edu.utn.frc.pruebaAgencia.exceptions.PruebaException;
 import ar.edu.utn.frc.pruebaAgencia.models.Prueba;
-import ar.edu.utn.frc.pruebaAgencia.servicies.EmpleadoServiceImpl;
 import ar.edu.utn.frc.pruebaAgencia.servicies.PruebaServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +46,23 @@ public class PruebaController {
             return new ResponseEntity<>("Prueba finalizada correctamente!", HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/verificar-posicion/{idVehiculo}")
+    public ResponseEntity<Object> verificarYEnviarNotificacion(@PathVariable int idVehiculo){
+        try {
+            NotificacionAlertaDTO notificacion = pruebaService.verificarEnviarNotificacion(idVehiculo);
+
+            if (notificacion != null){
+                return new ResponseEntity<>(notificacion, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>("No se envio notificacion", HttpStatus.OK);
+            }
+        } catch (PruebaException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al procesar la solicitud", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

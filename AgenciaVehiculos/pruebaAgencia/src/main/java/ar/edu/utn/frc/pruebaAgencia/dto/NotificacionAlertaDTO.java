@@ -5,8 +5,8 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class NotificacionDTO {
-    private int vehiculoId;
+public class NotificacionAlertaDTO {
     private String motivo;
     private String mensaje;
+    private int vehiculoId;
 }

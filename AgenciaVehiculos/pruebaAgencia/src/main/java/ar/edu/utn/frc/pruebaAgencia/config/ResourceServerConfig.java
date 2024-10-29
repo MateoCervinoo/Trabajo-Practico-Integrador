@@ -20,6 +20,7 @@ public class ResourceServerConfig {
         http.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers("/api/agencia/prueba/**").hasRole("ADMIN")
                 .requestMatchers("/api/agencia/interesado/**").hasRole("USUARIO")
+                .requestMatchers("/api/agencia/reportes/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
         ).oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()));
         return http.build();

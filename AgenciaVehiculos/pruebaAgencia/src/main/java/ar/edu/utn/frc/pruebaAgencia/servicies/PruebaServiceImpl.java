@@ -1,22 +1,17 @@
 package ar.edu.utn.frc.pruebaAgencia.servicies;
 
-import ar.edu.utn.frc.pruebaAgencia.dto.NotificacionDTO;
-import ar.edu.utn.frc.pruebaAgencia.dto.PosicionVehiculoDTO;
-import ar.edu.utn.frc.pruebaAgencia.models.Empleado;
-import ar.edu.utn.frc.pruebaAgencia.models.Interesado;
-import ar.edu.utn.frc.pruebaAgencia.models.Prueba;
-import ar.edu.utn.frc.pruebaAgencia.models.Vehiculo;
+import ar.edu.utn.frc.pruebaAgencia.dto.NotificacionAlertaDTO;
+import ar.edu.utn.frc.pruebaAgencia.models.*;
 import ar.edu.utn.frc.pruebaAgencia.exceptions.PruebaException;
-import ar.edu.utn.frc.pruebaAgencia.repositories.EmpleadoRepository;
-import ar.edu.utn.frc.pruebaAgencia.repositories.InteresadoRepository;
-import ar.edu.utn.frc.pruebaAgencia.repositories.PruebaRepository;
-import ar.edu.utn.frc.pruebaAgencia.repositories.VehiculoRepository;
+import ar.edu.utn.frc.pruebaAgencia.repositories.*;
 import ar.edu.utn.frc.pruebaAgencia.servicies.interfaces.PruebaService;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,14 +20,18 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
     private final VehiculoRepository vehiculoRepository;
     private final InteresadoRepository interesadoRepository;
     private final EmpleadoRepository empleadoRepository;
-    private RestTemplate restTemplate;
+    private final PosicionRepository posicionRepository;
+    private final RestTemplate restTemplate;
 
     public PruebaServiceImpl(PruebaRepository pruebaRepository, VehiculoRepository vehiculoRepository,
-                             InteresadoRepository interesadoRepository, EmpleadoRepository empleadoRepository) {
+                             InteresadoRepository interesadoRepository, EmpleadoRepository empleadoRepository,
+                             PosicionRepository posicionRepository, RestTemplate restTemplate) {
         this.pruebaRepository = pruebaRepository;
         this.vehiculoRepository = vehiculoRepository;
         this.interesadoRepository = interesadoRepository;
         this.empleadoRepository = empleadoRepository;
+        this.posicionRepository = posicionRepository;
+        this.restTemplate = restTemplate;
     }
 
     public void add(Prueba prueba){
@@ -106,46 +105,51 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
         update(prueba);
     }
 
-    public void verificarEnviarNotificacion(){
-        String url = "https://url-servicio-externo.com";
-        PosicionVehiculoDTO posicionVehiculo = restTemplate.getForObject(url, PosicionVehiculoDTO.class);
+    public NotificacionAlertaDTO verificarEnviarNotificacion(int idVehiculo){
+        Vehiculo vehiculo = vehiculoRepository.findById(idVehiculo).orElseThrow();
+        List<Posicion> posiciones = vehiculo.getPosicionesVehiculo();
+
+        Posicion posicionVehiculo = posiciones.stream()
+                .max(Comparator.comparing(Posicion::getFechaHora))
+                .orElseThrow(() -> new NoSuchElementException("No tiene posiciones guardadas"));
 
         boolean estaEnLimite = evaluarPosicion(posicionVehiculo);
         if (!estaEnLimite){
-            enviarNotificacion(posicionVehiculo);
+            return enviarNotificacion(posicionVehiculo);
         }
+        return null;
     }
 
-    private void enviarNotificacion(PosicionVehiculoDTO posicion){
-        NotificacionDTO notificacion = new NotificacionDTO(posicion.getVehiculoId(),
-                "Exceso de limite", "Peligro! El vehiculo ha ingresado a una zona peligrosa o ha excedido el radio permitido");
+    private NotificacionAlertaDTO enviarNotificacion(Posicion posicion){
+        NotificacionAlertaDTO notificacion = new NotificacionAlertaDTO(
+                "Exceso de limite",
+                "Peligro! El vehiculo ha ingresado a una zona peligrosa o ha excedido el radio permitido",
+                posicion.getVehiculo().getId());
 
         String url = "http://localhost:8084/api/notificaciones";
-        restTemplate.postForObject(url, notificacion, String.class);
+        try {
+            restTemplate.postForObject(url, notificacion, String.class);
+            return notificacion;
+        } catch (Exception e) {
+            System.err.println("Error al enviar la notificación: " + e.getMessage());
+            return null;
+        }
     }
 
-    private boolean evaluarPosicion(PosicionVehiculoDTO posicion){
-        boolean bool;
-        Vehiculo v = vehiculoRepository.findById(posicion.getVehiculoId()).orElseThrow(() -> new PruebaException("Vehiculo no encontrado!"));
-        Prueba prueba = v.getPruebasVehiculo().stream()
+    private boolean evaluarPosicion(Posicion posicion){
+        Vehiculo vehiculo = vehiculoRepository.findById(posicion.getVehiculo().getId())
+                .orElseThrow(() -> new PruebaException("Vehículo no encontrado"));
+
+        Prueba pruebaActiva = vehiculo.getPruebasVehiculo().stream()
                 .filter(p -> p.getFechaFin().isAfter(LocalDateTime.now()))
                 .findFirst()
-                .orElse(null);
+                .orElseThrow(() -> new PruebaException("El vehículo no tiene ninguna prueba activa"));
 
-        if (prueba == null) {
-            bool = false;
-            throw new PruebaException("El vehiculo no tiene ninguna prueba activa");
-        } else {
-            double distancia = calcularDistancia();
-            if (distancia > 0){
-                bool = true;
-            } else {
-                bool = false;
-                throw new PruebaException("El vehiculo esta dentro de los limites");
-            }
-        }
 
-        return bool;
+        double distancia = calcularDistancia();
+        //TODO;
+        return false;
+        // distancia > pruebaActiva.getRadioPermitido();
     }
 
     private double calcularDistancia() {
