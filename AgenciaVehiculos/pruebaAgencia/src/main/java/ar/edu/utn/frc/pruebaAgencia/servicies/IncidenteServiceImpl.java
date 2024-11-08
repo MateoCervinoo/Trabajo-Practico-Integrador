@@ -1,14 +1,11 @@
 package ar.edu.utn.frc.pruebaAgencia.servicies;
 
-import ar.edu.utn.frc.pruebaAgencia.models.Empleado;
 import ar.edu.utn.frc.pruebaAgencia.models.Incidente;
 import ar.edu.utn.frc.pruebaAgencia.models.Prueba;
-import ar.edu.utn.frc.pruebaAgencia.repositories.EmpleadoRepository;
 import ar.edu.utn.frc.pruebaAgencia.repositories.IncidenteRepository;
 import ar.edu.utn.frc.pruebaAgencia.servicies.interfaces.IncidenteService;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 

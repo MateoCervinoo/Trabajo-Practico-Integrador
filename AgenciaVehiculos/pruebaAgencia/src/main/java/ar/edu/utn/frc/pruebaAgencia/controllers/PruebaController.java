@@ -7,6 +7,7 @@ import ar.edu.utn.frc.pruebaAgencia.servicies.PruebaServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,10 +15,14 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/agencia/prueba")
 public class PruebaController {
-    private final PruebaServiceImpl pruebaService;
+    private static final String urlAgencia = "http://localhost:8082/api/agencia/informacion";
 
-    public PruebaController(PruebaServiceImpl pruebaService) {
+    private final PruebaServiceImpl pruebaService;
+    private RestTemplate restTemplate;
+
+    public PruebaController(PruebaServiceImpl pruebaService, RestTemplate restTemplate) {
         this.pruebaService = pruebaService;
+        this.restTemplate = restTemplate;
     }
 
     @GetMapping("/listado")

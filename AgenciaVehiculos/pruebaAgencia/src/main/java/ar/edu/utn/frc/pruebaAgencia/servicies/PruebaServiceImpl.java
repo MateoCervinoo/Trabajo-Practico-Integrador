@@ -1,5 +1,7 @@
 package ar.edu.utn.frc.pruebaAgencia.servicies;
 
+import ar.edu.utn.frc.pruebaAgencia.client.ApiClient;
+import ar.edu.utn.frc.pruebaAgencia.dto.AgenciaDTO;
 import ar.edu.utn.frc.pruebaAgencia.dto.NotificacionAlertaDTO;
 import ar.edu.utn.frc.pruebaAgencia.models.*;
 import ar.edu.utn.frc.pruebaAgencia.exceptions.PruebaException;
@@ -23,6 +25,8 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
     private final PosicionRepository posicionRepository;
     private final IncidenteServiceImpl incidenteService;
     private final RestTemplate restTemplate;
+
+    private static final double EARTH_RADIUS_KM = 6371.0;
 
     public PruebaServiceImpl(PruebaRepository pruebaRepository, VehiculoRepository vehiculoRepository,
                              InteresadoRepository interesadoRepository, EmpleadoRepository empleadoRepository,
@@ -108,7 +112,8 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
     }
 
     public NotificacionAlertaDTO verificarEnviarNotificacion(int idVehiculo){
-        Vehiculo vehiculo = vehiculoRepository.findById(idVehiculo).orElseThrow();
+        Vehiculo vehiculo = vehiculoRepository.findById(idVehiculo)
+                .orElseThrow(() -> new PruebaException("No se encontro el vehiculo"));
         List<Posicion> posiciones = vehiculo.getPosicionesVehiculo();
         List<Prueba> pruebas = vehiculo.getPruebasVehiculo();
 
@@ -155,15 +160,35 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
                 .findFirst()
                 .orElseThrow(() -> new PruebaException("El vehículo no tiene ninguna prueba activa"));
 
-
-        double distancia = calcularDistancia();
-        //TODO;
-        return false;
-        // distancia > pruebaActiva.getRadioPermitido();
+        return calcularDistancia(posicion.getLatitud(), posicion.getLongitud());
     }
 
-    private double calcularDistancia() {
-        //TODO
-        return 0;
+    private boolean calcularDistancia(double latVehiculo, double lonVehiculo) {
+        AgenciaDTO agencia = obtenerInformacionAgencia();
+        double latitud =  agencia.getCoordenadasAgencia().getLat();
+        double longitud = agencia.getCoordenadasAgencia().getLon();
+
+        double lat1Rad = Math.toRadians(latVehiculo);
+        double lon1Rad = Math.toRadians(lonVehiculo);
+        double lat2Rad = Math.toRadians(latitud);
+        double lon2Rad = Math.toRadians(longitud);
+
+        double deltaLat = lat2Rad - lat1Rad;
+        double deltaLon = lon2Rad - lon1Rad;
+
+        double a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                        Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        double distance = EARTH_RADIUS_KM * c;
+
+        return distance < 5.0;
+    }
+
+    private AgenciaDTO obtenerInformacionAgencia(){
+        ApiClient apiClient = new ApiClient();
+        return apiClient.getAgenciaInfo();
     }
 }
