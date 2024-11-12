@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Random;
 
 @Service
 public class InteresadoServiceImpl extends ServiceImpl<Interesado, Integer> implements InteresadoService {
@@ -46,6 +47,7 @@ public class InteresadoServiceImpl extends ServiceImpl<Interesado, Integer> impl
 
     public void guardarPosicionVehiculo(int idInteresado){
         Interesado interesado = findById(idInteresado);
+        Random random = new Random();
 
         List<Prueba> pruebas = interesado.getPruebasInteresado();
 
@@ -57,8 +59,8 @@ public class InteresadoServiceImpl extends ServiceImpl<Interesado, Integer> impl
         if (prueba == null){
             throw new PruebaException("El interesado no tiene una prueba activa");
         } else {
-            double latitud = 42 + Math.random();
-            double longitud = 1 + Math.random();
+            double latitud = 42 + random.nextDouble();
+            double longitud = 1 + random.nextDouble();
 
             Posicion posicion = new Posicion(prueba.getVehiculo(), LocalDateTime.now(), latitud, longitud);
             posicionService.add(posicion);

@@ -5,11 +5,13 @@ import ar.edu.utn.frc.pruebaAgencia.dto.CoordenadaDTO;
 import ar.edu.utn.frc.pruebaAgencia.dto.ZonaRestringidaDTO;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class ApiClient {
     private String urlString = "https://labsys.frc.utn.edu.ar/apps-disponibilizadas/backend/api/v1/configuracion/";
 
@@ -28,7 +30,6 @@ public class ApiClient {
             double lon = coordenadasAgencia.getDouble("lon");
             int radioAdmitido = jsonResponse.getInt("radioAdmitidoKm");
 
-            // Procesamos las zonas restringidas
             JSONArray zonasRestringidasJson = jsonResponse.getJSONArray("zonasRestringidas");
             List<ZonaRestringidaDTO> zonasRestringidas = new ArrayList<>();
 

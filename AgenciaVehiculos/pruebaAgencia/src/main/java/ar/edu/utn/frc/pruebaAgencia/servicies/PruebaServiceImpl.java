@@ -2,7 +2,9 @@ package ar.edu.utn.frc.pruebaAgencia.servicies;
 
 import ar.edu.utn.frc.pruebaAgencia.client.ApiClient;
 import ar.edu.utn.frc.pruebaAgencia.dto.AgenciaDTO;
+import ar.edu.utn.frc.pruebaAgencia.dto.CoordenadaDTO;
 import ar.edu.utn.frc.pruebaAgencia.dto.NotificacionAlertaDTO;
+import ar.edu.utn.frc.pruebaAgencia.dto.ZonaRestringidaDTO;
 import ar.edu.utn.frc.pruebaAgencia.models.*;
 import ar.edu.utn.frc.pruebaAgencia.exceptions.PruebaException;
 import ar.edu.utn.frc.pruebaAgencia.repositories.*;
@@ -11,7 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -22,22 +26,20 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
     private final VehiculoRepository vehiculoRepository;
     private final InteresadoRepository interesadoRepository;
     private final EmpleadoRepository empleadoRepository;
-    private final PosicionRepository posicionRepository;
     private final IncidenteServiceImpl incidenteService;
     private final RestTemplate restTemplate;
-
-    private static final double EARTH_RADIUS_KM = 6371.0;
+    private final ApiClient apiClient;
 
     public PruebaServiceImpl(PruebaRepository pruebaRepository, VehiculoRepository vehiculoRepository,
                              InteresadoRepository interesadoRepository, EmpleadoRepository empleadoRepository,
-                             PosicionRepository posicionRepository, IncidenteServiceImpl incidenteService, RestTemplate restTemplate) {
+                             IncidenteServiceImpl incidenteService, RestTemplate restTemplate, ApiClient apiClient) {
         this.pruebaRepository = pruebaRepository;
         this.vehiculoRepository = vehiculoRepository;
         this.interesadoRepository = interesadoRepository;
         this.empleadoRepository = empleadoRepository;
-        this.posicionRepository = posicionRepository;
         this.incidenteService = incidenteService;
         this.restTemplate = restTemplate;
+        this.apiClient = apiClient;
     }
 
     public void add(Prueba prueba){
@@ -126,19 +128,22 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
                 .findFirst()
                 .orElseThrow(() -> new PruebaException("El vehiculo no tiene una prueba activa"));
 
-        boolean estaEnLimite = evaluarPosicion(posicionVehiculo);
+        boolean estaEnLimite = evaluarPosicionLimite(posicionVehiculo);
+        boolean estaEnZona = evaluarPosicionRestringida(posicionVehiculo);
         if (!estaEnLimite){
             Incidente incidente = new Incidente(prueba, prueba.getEmpleado());
             incidenteService.add(incidente);
-            return enviarNotificacion(posicionVehiculo);
+            return enviarNotificacion(posicionVehiculo, "Exceso de limite", "Peligro! El vehiculo ha excedido el radio permitido");
+        } else if (estaEnZona){
+            return enviarNotificacion(posicionVehiculo, "Zona peligrosa", "Peligro! El vehiculo ha ingresado a una zona peligrosa");
         }
         return null;
     }
 
-    private NotificacionAlertaDTO enviarNotificacion(Posicion posicion){
+    private NotificacionAlertaDTO enviarNotificacion(Posicion posicion, String motivo, String mensaje){
         NotificacionAlertaDTO notificacion = new NotificacionAlertaDTO(
-                "Exceso de limite",
-                "Peligro! El vehiculo ha ingresado a una zona peligrosa o ha excedido el radio permitido",
+                motivo,
+                mensaje,
                 posicion.getVehiculo().getId());
 
         String url = "http://localhost:8084/api/notificaciones";
@@ -151,27 +156,41 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
         }
     }
 
-    private boolean evaluarPosicion(Posicion posicion){
-        Vehiculo vehiculo = vehiculoRepository.findById(posicion.getVehiculo().getId())
-                .orElseThrow(() -> new PruebaException("Vehículo no encontrado"));
+    private boolean evaluarPosicionLimite(Posicion posicion){
+        double latAgencia = apiClient.getAgenciaInfo().getCoordenadasAgencia().getLat();
+        double lonAgencia = apiClient.getAgenciaInfo().getCoordenadasAgencia().getLon();
 
-        Prueba pruebaActiva = vehiculo.getPruebasVehiculo().stream()
-                .filter(p -> p.getFechaFin().isAfter(LocalDateTime.now()))
-                .findFirst()
-                .orElseThrow(() -> new PruebaException("El vehículo no tiene ninguna prueba activa"));
+        double distancia = calcularDistancia(latAgencia, lonAgencia, posicion.getLatitud(), posicion.getLongitud());
 
-        return calcularDistancia(posicion.getLatitud(), posicion.getLongitud());
+        return distancia < 5.0;
     }
 
-    private boolean calcularDistancia(double latVehiculo, double lonVehiculo) {
-        AgenciaDTO agencia = obtenerInformacionAgencia();
-        double latitud =  agencia.getCoordenadasAgencia().getLat();
-        double longitud = agencia.getCoordenadasAgencia().getLon();
+    private boolean evaluarPosicionRestringida(Posicion posicion){
+        AgenciaDTO agencia = apiClient.getAgenciaInfo();
+        List<ZonaRestringidaDTO> listaZonas = agencia.getZonasRestringidas();
+        boolean zonaPeligrosa = false;
 
-        double lat1Rad = Math.toRadians(latVehiculo);
-        double lon1Rad = Math.toRadians(lonVehiculo);
-        double lat2Rad = Math.toRadians(latitud);
-        double lon2Rad = Math.toRadians(longitud);
+        for (int i = 0; i < listaZonas.size(); i++) {
+            CoordenadaDTO noroeste = listaZonas.get(i).getNoroeste();
+            CoordenadaDTO sureste = listaZonas.get(i).getSureste();
+
+            if (sureste.getLat() <= posicion.getLatitud() && posicion.getLatitud() <= noroeste.getLat() &&
+                    noroeste.getLon() <= posicion.getLongitud() && posicion.getLongitud() <= sureste.getLon()){
+                System.out.println("zona peligrosa");
+                zonaPeligrosa = true;
+                break;
+            }
+        }
+        return zonaPeligrosa;
+    }
+
+    private double calcularDistancia(double latOrigen, double lonOrigen, double latDestino, double lonDestino) {
+        final double EARTH_RADIUS_KM = 6371.0;
+
+        double lat1Rad = Math.toRadians(latOrigen);
+        double lon1Rad = Math.toRadians(lonOrigen);
+        double lat2Rad = Math.toRadians(latDestino);
+        double lon2Rad = Math.toRadians(lonDestino);
 
         double deltaLat = lat2Rad - lat1Rad;
         double deltaLon = lon2Rad - lon1Rad;
@@ -182,13 +201,36 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        double distance = EARTH_RADIUS_KM * c;
-
-        return distance < 5.0;
+        return EARTH_RADIUS_KM * c;
     }
 
-    private AgenciaDTO obtenerInformacionAgencia(){
-        ApiClient apiClient = new ApiClient();
-        return apiClient.getAgenciaInfo();
+    public double calcularKmRecorrido(int idVehiculo, Date fecha){
+        Vehiculo vehiculo = vehiculoRepository.findById(idVehiculo)
+                .orElseThrow(() -> new PruebaException("No se encontro el vehiculo"));
+
+        LocalDateTime fechaInicio = fecha.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+
+        List<Posicion> posiciones = vehiculo.getPosicionesVehiculo().stream()
+                .filter(p -> p.getFechaHora().isAfter(fechaInicio) || p.getFechaHora().isEqual(fechaInicio))
+            .toList();
+
+        if (posiciones.isEmpty()){
+            return 0.0;
+        }
+
+        double distanciaTotal = 0.0;
+        double latitudAgencia = apiClient.getAgenciaInfo().getCoordenadasAgencia().getLat();
+        double longitudAgencia = apiClient.getAgenciaInfo().getCoordenadasAgencia().getLon();
+
+        distanciaTotal += calcularDistancia(latitudAgencia, longitudAgencia, posiciones.get(0).getLatitud(), posiciones.get(0).getLongitud());
+
+        for (int i = 1; i < posiciones.size(); i++) {
+            distanciaTotal += calcularDistancia(posiciones.get(i-1).getLatitud(), posiciones.get(i-1).getLongitud(),
+                    posiciones.get(i).getLatitud(), posiciones.get(i).getLongitud());
+        }
+        distanciaTotal += calcularDistancia(posiciones.getLast().getLatitud(), posiciones.getLast().getLongitud(),
+                latitudAgencia, longitudAgencia);
+
+        return distanciaTotal;
     }
 }
