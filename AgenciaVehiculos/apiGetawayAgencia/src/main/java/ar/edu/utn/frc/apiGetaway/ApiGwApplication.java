@@ -1,4 +1,4 @@
-package ar.edu.utn.bda.apunteapigwinicial;
+package ar.edu.utn.frc.apiGetaway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

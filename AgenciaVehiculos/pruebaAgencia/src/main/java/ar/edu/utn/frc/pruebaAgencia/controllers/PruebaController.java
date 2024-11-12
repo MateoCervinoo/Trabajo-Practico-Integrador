@@ -62,7 +62,7 @@ public class PruebaController {
             if (notificacion != null){
                 return new ResponseEntity<>(notificacion, HttpStatus.OK);
             } else {
-                return new ResponseEntity<>("No se envio notificacion", HttpStatus.OK);
+                return new ResponseEntity<>("El vehiculo esta en una posicion permitida", HttpStatus.OK);
             }
         } catch (PruebaException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

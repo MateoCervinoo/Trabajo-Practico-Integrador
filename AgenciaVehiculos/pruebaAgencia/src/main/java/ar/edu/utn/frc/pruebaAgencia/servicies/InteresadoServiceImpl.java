@@ -46,8 +46,8 @@ public class InteresadoServiceImpl extends ServiceImpl<Interesado, Integer> impl
     }
 
     public void guardarPosicionVehiculo(int idInteresado){
-        Interesado interesado = findById(idInteresado);
         Random random = new Random();
+        Interesado interesado = findById(idInteresado);
 
         List<Prueba> pruebas = interesado.getPruebasInteresado();
 
@@ -61,6 +61,7 @@ public class InteresadoServiceImpl extends ServiceImpl<Interesado, Integer> impl
         } else {
             double latitud = 42 + random.nextDouble();
             double longitud = 1 + random.nextDouble();
+            System.out.println(latitud + " | " + longitud);
 
             Posicion posicion = new Posicion(prueba.getVehiculo(), LocalDateTime.now(), latitud, longitud);
             posicionService.add(posicion);

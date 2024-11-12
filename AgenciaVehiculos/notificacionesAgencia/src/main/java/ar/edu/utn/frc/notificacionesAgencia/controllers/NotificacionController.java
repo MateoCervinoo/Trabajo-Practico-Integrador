@@ -20,7 +20,7 @@ public class NotificacionController {
         this.notificacionOfertaService = notificacionOfertaService;
     }
 
-    @PostMapping
+    @PostMapping("/enviar-notificacion")
     public ResponseEntity<Object> recibirNotificacionAlerta(@RequestBody NotificacionAlertaDTO notificacion){
         try {
             notificacionAlertaService.crearNotificacion(notificacion);
@@ -36,7 +36,7 @@ public class NotificacionController {
             notificacionOfertaService.crearNotificacion(notificacion);
             return new ResponseEntity<>(notificacion, HttpStatus.OK);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error al procesar la notificación.", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>("Error al crear la notificación", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

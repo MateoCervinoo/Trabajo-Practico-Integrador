@@ -130,7 +130,7 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
 
         boolean estaEnLimite = evaluarPosicionLimite(posicionVehiculo);
         boolean estaEnZona = evaluarPosicionRestringida(posicionVehiculo);
-        if (!estaEnLimite){
+        if (estaEnLimite){
             Incidente incidente = new Incidente(prueba, prueba.getEmpleado());
             incidenteService.add(incidente);
             return enviarNotificacion(posicionVehiculo, "Exceso de limite", "Peligro! El vehiculo ha excedido el radio permitido");
@@ -146,7 +146,7 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
                 mensaje,
                 posicion.getVehiculo().getId());
 
-        String url = "http://localhost:8084/api/notificaciones";
+        String url = "http://localhost:8084/api/notificaciones/enviar-notificacion";
         try {
             restTemplate.postForObject(url, notificacion, String.class);
             return notificacion;
@@ -161,8 +161,9 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
         double lonAgencia = apiClient.getAgenciaInfo().getCoordenadasAgencia().getLon();
 
         double distancia = calcularDistancia(latAgencia, lonAgencia, posicion.getLatitud(), posicion.getLongitud());
+        System.out.println(distancia);
 
-        return distancia < 5.0;
+        return distancia >= 5.0;
     }
 
     private boolean evaluarPosicionRestringida(Posicion posicion){
@@ -176,7 +177,6 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
 
             if (sureste.getLat() <= posicion.getLatitud() && posicion.getLatitud() <= noroeste.getLat() &&
                     noroeste.getLon() <= posicion.getLongitud() && posicion.getLongitud() <= sureste.getLon()){
-                System.out.println("zona peligrosa");
                 zonaPeligrosa = true;
                 break;
             }
@@ -228,6 +228,7 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
             distanciaTotal += calcularDistancia(posiciones.get(i-1).getLatitud(), posiciones.get(i-1).getLongitud(),
                     posiciones.get(i).getLatitud(), posiciones.get(i).getLongitud());
         }
+
         distanciaTotal += calcularDistancia(posiciones.getLast().getLatitud(), posiciones.getLast().getLongitud(),
                 latitudAgencia, longitudAgencia);
 

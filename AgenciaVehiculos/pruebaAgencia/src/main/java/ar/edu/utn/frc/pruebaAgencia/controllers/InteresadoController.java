@@ -26,10 +26,10 @@ public class InteresadoController {
         }
     }
 
-    @GetMapping("/guardar-posicion/{id}")
-    public ResponseEntity<Object> guardarPosicion(@PathVariable int id){
+    @GetMapping("/guardar-posicion/{idInteresado}")
+    public ResponseEntity<Object> guardarPosicion(@PathVariable int idInteresado){
         try {
-            interesadoService.guardarPosicionVehiculo(id);
+            interesadoService.guardarPosicionVehiculo(idInteresado);
             return new ResponseEntity<>("Posicion guardada!", HttpStatus.OK);
         } catch (PruebaException p) {
             throw new PruebaException("El interesado no tiene una prueba activa");
