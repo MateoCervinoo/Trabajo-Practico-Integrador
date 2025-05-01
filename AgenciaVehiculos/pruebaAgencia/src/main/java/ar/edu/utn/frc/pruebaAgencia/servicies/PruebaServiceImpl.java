@@ -161,7 +161,6 @@ public class PruebaServiceImpl extends ServiceImpl<Prueba, Integer> implements P
         double lonAgencia = apiClient.getAgenciaInfo().getCoordenadasAgencia().getLon();
 
         double distancia = calcularDistancia(latAgencia, lonAgencia, posicion.getLatitud(), posicion.getLongitud());
-        System.out.println(distancia);
 
         return distancia >= 5.0;
     }
